@@ -17,3 +17,15 @@ pip install -r requirements.txt
 
 python process.py
 
+
+### Recommendation Model(offline)
+python3.9 used since python3.11 can not install surprise
+
+python3.9 -m venv myenv39 
+
+source myenv39/bin/activate
+
+python3.9 -m pip install mysql-connector-python pandas scikit-surprise scikit-learn python-dotenv
+
+python3.9 recommendation_model.py
+
