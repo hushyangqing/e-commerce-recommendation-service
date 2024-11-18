@@ -8,3 +8,12 @@ This project utilizes data from [Amazon Review Data (2023)](https://amazon-revie
 Please refer to the original data source for further details.
 Our subset includes 5 categories for simplicity: All_Beauty, Amazon_Fashion, Appliances, Arts_Crafts_and_Sewing, Automotive. (24.43 GB in total)
 
+#### Write data into mysql db
+python -m venv venv
+
+source venv/bin/activate 
+
+pip install -r requirements.txt
+
+python process.py
+
