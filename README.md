@@ -27,5 +27,9 @@ source myenv39/bin/activate
 
 python3.9 -m pip install mysql-connector-python pandas scikit-surprise scikit-learn python-dotenv
 
+python3.9 -m pip install joblib tqdm psutil pyarrow
+
 python3.9 recommendation_model.py
+
+Please run memory_efficient_training.py when testing in local (the dataset is too large...)
 

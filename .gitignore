@@ -1,4 +1,5 @@
 /data_processing/data/
 /data_processing/venv/
-/data_processing/myenv39/
+/myenv39/
 /data_processing/.DS_Store
+/recommendation-service/src/main/resources/application.properties
