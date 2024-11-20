@@ -29,6 +29,6 @@ python3.9 -m pip install mysql-connector-python pandas scikit-surprise scikit-le
 
 python3.9 -m pip install joblib tqdm psutil pyarrow
 
-python3.9 memory_efficient_training.py # to include more recommendations for users, change         cursor.execute("SELECT user_id FROM users LIMIT 1000") in def def save_recommendations(self):
+python3.9 memory_efficient_training.py # to include more recommendations for users, change cursor.execute("SELECT user_id FROM users LIMIT 1000") in def def save_recommendations(self):
 
 
