@@ -19,7 +19,7 @@ python process.py
 
 
 ### Recommendation Model(offline)
-python3.9 used since python3.11 can not install surprise
+Python3.9 used since python3.11 can not install surprise. Besides, we sample data here since the recommendation model is not our main focus.
 
 python3.9 -m venv myenv39 
 
@@ -29,7 +29,6 @@ python3.9 -m pip install mysql-connector-python pandas scikit-surprise scikit-le
 
 python3.9 -m pip install joblib tqdm psutil pyarrow
 
-python3.9 recommendation_model.py
+python3.9 memory_efficient_training.py # to include more recommendations for users, change         cursor.execute("SELECT user_id FROM users LIMIT 1000") in def def save_recommendations(self):
 
-Please run memory_efficient_training.py when testing in local (the dataset is too large...)
 
