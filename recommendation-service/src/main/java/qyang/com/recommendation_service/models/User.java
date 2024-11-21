@@ -6,6 +6,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
 import java.util.Objects;
+import java.util.UUID;
 
 @Entity
 @Table(name="users")
@@ -21,6 +22,12 @@ public class User {
     private String password = "password";
 
     public User() {
+    }
+
+    public User(String username, String password) {
+        this.userId = "USER-" + UUID.randomUUID().toString().substring(0, 8);
+        this.username = username;
+        this.password = password;
     }
 
     public User(String userId, String username, String password) {
