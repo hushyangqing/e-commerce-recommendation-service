@@ -3,3 +3,4 @@
 /myenv39/
 /data_processing/.DS_Store
 /recommendation-service/src/main/resources/application.properties
+*.DS_Store
