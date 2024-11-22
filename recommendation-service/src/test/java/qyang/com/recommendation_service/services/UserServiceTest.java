@@ -2,6 +2,7 @@ package qyang.com.recommendation_service.services;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,11 +14,17 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.transaction.annotation.Transactional;
 import qyang.com.recommendation_service.dtos.LoginRequest;
 import qyang.com.recommendation_service.dtos.LoginResponse;
+import qyang.com.recommendation_service.dtos.ProfileResponse;
 import qyang.com.recommendation_service.dtos.UserResponse;
 import qyang.com.recommendation_service.exceptions.InvalidCredentialsException;
+import qyang.com.recommendation_service.exceptions.ResourceNotFoundException;
 import qyang.com.recommendation_service.exceptions.UserAlreadyExistsException;
+import qyang.com.recommendation_service.models.Profile;
 import qyang.com.recommendation_service.models.User;
+import qyang.com.recommendation_service.repositories.ProfileRepository;
 import qyang.com.recommendation_service.repositories.UserRepository;
+
+import java.time.LocalDateTime;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -36,12 +43,16 @@ public class UserServiceTest {
     private UserRepository userRepository;
 
     @Autowired
+    private ProfileRepository profileRepository;
+
+    @Autowired
     private UserService userService;
 
     @Autowired
     private PasswordEncoder passwordEncoder;
 
     private User testUser;
+    private Profile testProfile;
     private LoginRequest loginRequest;
 
     @BeforeEach
@@ -53,9 +64,15 @@ public class UserServiceTest {
         testUser.setPassword(encodedPassword);
         userRepository.save(testUser);
 
+        testUser = userRepository.saveAndFlush(testUser);
+        entityManager.clear();
+
         loginRequest = new LoginRequest();
         loginRequest.setUsername("testuser");
         loginRequest.setPassword("password");
+
+        entityManager.flush();
+        entityManager.clear();
 
     }
 
@@ -120,6 +137,100 @@ public class UserServiceTest {
         assertThrows(InvalidCredentialsException.class, () ->
                 userService.login(loginRequest)
         );
+    }
+
+    private void setupTestProfile() {
+        User managedUser = entityManager.find(User.class, testUser.getUserId());
+
+        testProfile = new Profile();
+        testProfile.setUserId(testUser.getUserId());
+        testProfile.setEmail("yangqinghush@gmail.com");
+        testProfile.setFirstname("Test");
+        testProfile.setLastname("User");
+        testProfile.setPhone("1234567890");
+        testProfile.setUser(managedUser);
+        entityManager.persist(testProfile);  // Use persist for initial creation
+        entityManager.flush();
+        entityManager.clear();
+    }
+
+    @Test
+    public void getProfile_whenUserExists_shouldReturnProfileResponse() {
+        setupTestProfile();
+
+        ProfileResponse response = userService.getProfile(testUser.getUsername());
+
+        assertNotNull(response);
+        assertEquals(testUser.getUserId(), response.getUserId());
+        assertEquals(testUser.getUsername(), response.getUsername());
+        assertEquals(testProfile.getEmail(), response.getEmail());
+        assertEquals(testProfile.getFirstname(), response.getFirstName());
+        assertEquals(testProfile.getLastname(), response.getLastName());
+        assertEquals(testProfile.getPhone(), response.getPhone());
+        assertNotNull(response.getCreatedAt());
+        assertNotNull(response.getUpdatedAt());
+    }
+
+    @Test
+    public void getProfile_WhenUserDoesNotExist_ThrowsResourceNotFoundException() {
+        setupTestProfile();
+
+        assertThrows(ResourceNotFoundException.class, () ->
+                userService.getProfile("nonexistentuser")
+        );
+    }
+
+    @Test
+    public void getProfile_WhenUserExistsButProfileDoesNot_ThrowsResourceNotFoundException() {
+        setupTestProfile();
+
+        User newUser = new User();
+        newUser.setUserId("new-id");
+        newUser.setUsername("newuser");
+        newUser.setPassword("password");
+        userRepository.save(newUser);
+        entityManager.flush();
+        entityManager.clear();
+
+        assertThrows(ResourceNotFoundException.class, () ->
+                userService.getProfile("newuser")
+        );
+    }
+
+    @Test
+    public void getProfile_ProfileDataUpdated_ReturnsUpdatedProfile() {
+        setupTestProfile();
+
+        testProfile.setEmail("updated@example.com");
+        testProfile.setPhone("9876543210");
+        profileRepository.save(testProfile);
+        entityManager.flush();
+        entityManager.clear();
+
+        ProfileResponse response = userService.getProfile(testUser.getUsername());
+
+        assertEquals("updated@example.com", response.getEmail());
+        assertEquals("9876543210", response.getPhone());
+    }
+
+    @Test public void getProfile_CheckTimestamps_HasCorrectTimestamps() {
+        setupTestProfile();
+
+        ProfileResponse response = userService.getProfile(testUser.getUsername());
+
+        assertNotNull(response.getCreatedAt());
+        assertNotNull(response.getUpdatedAt());
+        assertTrue(response.getCreatedAt().isBefore(LocalDateTime.now()) ||
+                response.getCreatedAt().isEqual(LocalDateTime.now()));
+        assertTrue(response.getUpdatedAt().isBefore(LocalDateTime.now()) ||
+                response.getUpdatedAt().isEqual(LocalDateTime.now()));
+    }
+
+    @AfterEach
+    public void tearDown() {
+        userRepository.deleteAll();
+        profileRepository.deleteAll();
+        entityManager.clear();
     }
 
 }

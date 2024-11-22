@@ -1,2 +1,1 @@
--- INSERT INTO users (user_id, username, password)
--- VALUES ('test-id', 'testuser', '$2a$10$Pb1BQ2kz1Bj3RwsCrblr8eU6wLKp96bByL7BacMQEyj9Rw8M5GAQG');
+SHOW TABLES;
