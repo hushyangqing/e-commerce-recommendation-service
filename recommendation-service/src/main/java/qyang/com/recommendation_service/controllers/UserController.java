@@ -3,14 +3,10 @@ package qyang.com.recommendation_service.controllers;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-import qyang.com.recommendation_service.dtos.ErrorResponse;
-import qyang.com.recommendation_service.dtos.LoginRequest;
-import qyang.com.recommendation_service.dtos.LoginResponse;
-import qyang.com.recommendation_service.dtos.UserResponse;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.web.bind.annotation.*;
+import qyang.com.recommendation_service.dtos.*;
 import qyang.com.recommendation_service.exceptions.InvalidCredentialsException;
 import qyang.com.recommendation_service.exceptions.UserAlreadyExistsException;
 import qyang.com.recommendation_service.models.User;
@@ -49,5 +45,12 @@ public class UserController {
             log.error("Unexpected error during login for user {}", loginRequest.getUsername(), e);
             throw new RuntimeException("An error occurred during login");
         }
+    }
+
+    @GetMapping("/profile")
+    public ResponseEntity<?> getUserProfile(Authentication authentication) {
+        org.springframework.security.core.userdetails.User userDetails = (org.springframework.security.core.userdetails.User) authentication.getPrincipal();
+        ProfileResponse profile = userService.getProfile(userDetails.getUsername());
+        return ResponseEntity.ok(profile);
     }
 }

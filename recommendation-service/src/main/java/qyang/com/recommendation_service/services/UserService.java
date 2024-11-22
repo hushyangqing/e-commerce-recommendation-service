@@ -13,10 +13,14 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import qyang.com.recommendation_service.dtos.LoginRequest;
 import qyang.com.recommendation_service.dtos.LoginResponse;
+import qyang.com.recommendation_service.dtos.ProfileResponse;
 import qyang.com.recommendation_service.dtos.UserResponse;
 import qyang.com.recommendation_service.exceptions.InvalidCredentialsException;
+import qyang.com.recommendation_service.exceptions.ResourceNotFoundException;
 import qyang.com.recommendation_service.exceptions.UserAlreadyExistsException;
+import qyang.com.recommendation_service.models.Profile;
 import qyang.com.recommendation_service.models.User;
+import qyang.com.recommendation_service.repositories.ProfileRepository;
 import qyang.com.recommendation_service.repositories.UserRepository;
 import qyang.com.recommendation_service.security.JwtUtil;
 import lombok.extern.slf4j.Slf4j;
@@ -26,12 +30,14 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class UserService {
     private final UserRepository userRepository;
+    private final ProfileRepository profileRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
     private final AuthenticationManager authenticationManager;
 
-    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder, JwtUtil jwtUtil, AuthenticationManager authenticationManager) {
+    public UserService(UserRepository userRepository, ProfileRepository profileRepository, PasswordEncoder passwordEncoder, JwtUtil jwtUtil, AuthenticationManager authenticationManager) {
         this.userRepository = userRepository;
+        this.profileRepository = profileRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtUtil = jwtUtil;
         this.authenticationManager = authenticationManager;
@@ -91,6 +97,26 @@ public class UserService {
             log.error("Authentication failed for user: {}", request.getUsername(), e);
             throw new InvalidCredentialsException("Invalid username or password");
         }
+    }
 
+    public ProfileResponse getProfile(String username) {
+        return userRepository.findByUsername(username)
+                .map(user -> profileRepository.findById(user.getUserId())
+                        .map(this::convertToProfileResponse)
+                        .orElseThrow(() -> new ResourceNotFoundException("Profile not found")))
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+    }
+
+    private ProfileResponse convertToProfileResponse(Profile profile) {
+        ProfileResponse response = new ProfileResponse();
+        response.setUserId(profile.getUserId());
+        response.setUsername(profile.getUser().getUsername());
+        response.setEmail(profile.getEmail());
+        response.setFirstName(profile.getFirstname());
+        response.setLastName(profile.getLastname());
+        response.setPhone(profile.getPhone());
+        response.setCreatedAt(profile.getCreatedAt());
+        response.setUpdatedAt(profile.getUpdatedAt());
+        return response;
     }
 }
