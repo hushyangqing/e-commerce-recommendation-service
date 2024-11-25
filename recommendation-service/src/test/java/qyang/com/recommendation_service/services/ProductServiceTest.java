@@ -20,10 +20,10 @@ import static org.junit.jupiter.api.Assertions.*;
 public class ProductServiceTest {
 
 	@Autowired
-	ProductService productService;
+	private ProductService productService;
 
 	@Autowired
-	ProductRepository productRepository;
+	private ProductRepository productRepository;
 
 	private Product testProduct;
 
