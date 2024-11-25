@@ -15,13 +15,9 @@ import java.util.stream.Collectors;
 @Slf4j
 public class ProductService {
     private final ProductRepository productRepository;
-    private final JwtUtil jwtUtil;
-    private final AuthenticationManager authenticationManager;
 
-    public ProductService(ProductRepository productRepository, JwtUtil jwtUtil, AuthenticationManager authenticationManager) {
+    public ProductService(ProductRepository productRepository) {
         this.productRepository = productRepository;
-        this.jwtUtil = jwtUtil;
-        this.authenticationManager = authenticationManager;
     }
 
     public ProductResponse findByParentAsin(String asin) {
