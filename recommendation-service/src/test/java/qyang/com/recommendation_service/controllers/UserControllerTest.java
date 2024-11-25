@@ -208,7 +208,7 @@ public class UserControllerTest {
                 .getContentAsString();
         String token = objectMapper.readTree(result).get("token").asText();
 
-        Thread.sleep(1500);
+        Thread.sleep(3500);
 
         mockMvc.perform(get("/api/users/profile")
                         .header("Authorization", "Bearer " + token))
