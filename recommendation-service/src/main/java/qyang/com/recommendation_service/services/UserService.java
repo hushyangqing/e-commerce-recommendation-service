@@ -43,6 +43,12 @@ public class UserService {
         this.authenticationManager = authenticationManager;
     }
 
+    public UserResponse findByUserId(String userId) {
+        return userRepository.findById(userId)
+                .map(user -> new UserResponse(user.getUserId(), user.getUsername()))
+                .orElse(null);
+    }
+
     public UserResponse findByUsername(String username) {
         return userRepository.findByUsername(username)
                 .map(user -> new UserResponse(user.getUserId(), user.getUsername()))

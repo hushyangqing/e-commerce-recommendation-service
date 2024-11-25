@@ -77,6 +77,22 @@ public class UserServiceTest {
     }
 
     @Test
+    public void findByUserId_WhenUserExists_shouldReturnUser() {
+        UserResponse response = userService.findByUserId("test-id");
+
+        assertNotNull(response);
+        assertEquals(testUser.getUserId(), response.getUserId());
+        assertEquals(testUser.getUsername(), response.getUsername());
+    }
+
+    @Test
+    public void findByUserId_WhenUserDoesNotExist_shouldReturnNull() {
+        UserResponse response = userService.findByUserId("nonexistent");
+
+        assertNull(response);
+    }
+
+    @Test
     public void findByUsername_WhenUserExists_ShouldReturnUser() {
         UserResponse response = userService.findByUsername("testuser");
 
