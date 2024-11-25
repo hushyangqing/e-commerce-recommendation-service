@@ -9,5 +9,4 @@ import java.util.List;
 
 @Repository
 public interface CategoryRecommendationRepository extends JpaRepository<CategoryRecommendation, CategoryRecommendationId> {
-    List<CategoryRecommendation> findByIdUserId(String userId);
 }
