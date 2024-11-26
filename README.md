@@ -33,6 +33,13 @@ python3.9 memory_efficient_training.py # to include more recommendations for use
 
 python3.9 update_user.py
 ### Spring Boot API
+After running the api, you can access the Api Documentation:
+
+    Swagger UI: http://localhost:8080/swagger-ui.html
+
+    OpenAPI JSON: http://localhost:8080/v3/api-docs
+
+
 All functions are tested by Unit Test.
 Wait for Load Test and Automatic Test
 
