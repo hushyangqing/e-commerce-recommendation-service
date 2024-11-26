@@ -31,4 +31,8 @@ python3.9 -m pip install joblib tqdm psutil pyarrow
 
 python3.9 memory_efficient_training.py # to include more recommendations for users, change cursor.execute("SELECT user_id FROM users LIMIT 1000") in def def save_recommendations(self):
 
+### Spring Boot API
+All functions are tested by Unit Test.
+Wait for Load Test and Automatic Test
+
 
