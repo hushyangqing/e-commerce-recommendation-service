@@ -7,7 +7,7 @@ pipeline {
         ECR_REPO = 'e-commerce-recommendation-service'
         IMAGE_TAG = "${BUILD_NUMBER}"
         ECR_REGISTRY = "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com"
-        TEST_DB_PORT = '3306'
+        TEST_DB_PORT = '3307'
         TEST_APP_PORT = '8080'
     }
     
@@ -22,7 +22,7 @@ pipeline {
                 '''
             }
         }
-        
+
         stage('Setup Test Environment') {
             steps {
                 script {
@@ -31,7 +31,7 @@ pipeline {
                         docker run -d --name test-mysql \
                         -e MYSQL_ROOT_PASSWORD=test \
                         -e MYSQL_DATABASE=recommendation_test \
-                        -p ${TEST_DB_PORT}:3306 \
+                        -p ${TEST_DB_PORT}:3307 \
                         mysql:8.0
                     '''
 
