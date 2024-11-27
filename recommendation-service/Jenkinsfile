@@ -23,29 +23,29 @@ pipeline {
             }
         }
 
-        node('docker-node') {
 
-            stage('Setup Test Environment') {
-                steps {
-                    script {
-                        // Start MySQL container
-                        sh '''
-                            docker run -d --name test-mysql \
-                            -e MYSQL_ROOT_PASSWORD=test \
-                            -e MYSQL_DATABASE=recommendation_test \
-                            -p ${TEST_DB_PORT}:3307 \
-                            mysql:8.0
-                        '''
+        stage('Setup Test Environment') {
+            agent { label 'docker-node' }
+            steps {
+                script {
+                    // Start MySQL container
+                    sh '''
+                        docker run -d --name test-mysql \
+                        -e MYSQL_ROOT_PASSWORD=test \
+                        -e MYSQL_DATABASE=recommendation_test \
+                        -p ${TEST_DB_PORT}:3307 \
+                        mysql:8.0
+                    '''
 
-                        // Wait for MySQL to be ready
-                        sh '''
-                            until docker exec test-mysql mysqladmin ping -h "127.0.0.1" --silent; do
-                                echo "Waiting for database connection..."
-                                sleep 2
-                            done
-                        '''
+                    // Wait for MySQL to be ready
+                    sh '''
+                        until docker exec test-mysql mysqladmin ping -h "127.0.0.1" --silent; do
+                            echo "Waiting for database connection..."
+                            sleep 2
+                        done
+                    '''
 
-                        writeFile file: 'recommendation-service/src/main/resources/application-jmeter-test.properties', text: """
+                    writeFile file: 'recommendation-service/src/main/resources/application-jmeter-test.properties', text: """
 spring.datasource.url=jdbc:mysql://localhost:${TEST_DB_PORT}/recommendation_test
 spring.datasource.username=root
 spring.datasource.password=test
@@ -55,62 +55,62 @@ spring.sql.init.schema-locations=classpath:jmeter-schema.sql
 spring.sql.init.data-locations=classpath:jmeter-test-data.sql
 jwt.secret=test-secret
 jwt.expiration=3600000
-                        """
+                    """
 
-                        sh '''
-                            sed -i '/<elementProp name="BASE_URL"/,/<\\/elementProp>/ s|<stringProp name="Argument.value">.*</stringProp>|<stringProp name="Argument.value">http://localhost:${TEST_APP_PORT}</stringProp>|' recommendation-service/src/test/resources/jmeter/*.jmx
-                        '''
-                    }
-                }
-            }
-
-            
-            stage('Create Properties File') {
-                agent{
-                    docker {
-                        image 'amazon/aws-cli'
-                        args "--entrypoint=''"
-                        reuseNode true
-                    }
-                }
-                steps {
-                    withCredentials([[
-                        $class: 'AmazonWebServicesCredentialsBinding',
-                        credentialsId: 'aws-access-key-id',
-                        accessKeyVariable: 'AWS_ACCESS_KEY_ID',
-                        secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
-                    ]]) {
-                        script {
-                            def dbUrl = sh(script: "aws ssm get-parameter --name '/recommendation-service/prod/db_url' --with-decryption --query Parameter.Value --output text", returnStdout: true).trim()
-                            def dbUsername = sh(script: "aws ssm get-parameter --name '/recommendation-service/prod/db_username' --with-decryption --query Parameter.Value --output text", returnStdout: true).trim()
-                            def dbPassword = sh(script: "aws ssm get-parameter --name '/recommendation-service/prod/db_password' --with-decryption --query Parameter.Value --output text", returnStdout: true).trim()
-                            def jwtSecret = sh(script: "aws ssm get-parameter --name '/recommendation-service/prod/jwt_secret' --with-decryption --query Parameter.Value --output text", returnStdout: true).trim()
-                            
-                            sh """
-                                cd recommendation-service
-                                cat application.properties.template | \
-                                sed 's|\${DB_URL}|${dbUrl}|g' | \
-                                sed 's|\${DB_USERNAME}|${dbUsername}|g' | \
-                                sed 's|\${DB_PASSWORD}|${dbPassword}|g' | \
-                                sed 's|\${JWT_SECRET}|${jwtSecret}|g' > src/main/resources/application.properties
-                            """
-                        }
-                    }
-                }
-            }
-            
-            stage('Build & Test') {
-                steps {
                     sh '''
-                        docker ps | grep test-mysql
-                        cd recommendation-service
-                        mvn clean verify -Pjmeter-tests
+                        sed -i '/<elementProp name="BASE_URL"/,/<\\/elementProp>/ s|<stringProp name="Argument.value">.*</stringProp>|<stringProp name="Argument.value">http://localhost:${TEST_APP_PORT}</stringProp>|' recommendation-service/src/test/resources/jmeter/*.jmx
                     '''
                 }
-                post {
-                    always {
-                        sh 'docker rm -f test-mysql || true'
+            }
+        }
+
+            
+        stage('Create Properties File') {
+            agent{
+                docker {
+                    image 'amazon/aws-cli'
+                    args "--entrypoint=''"
+                    reuseNode true
+                }
+            }
+            steps {
+                withCredentials([[
+                    $class: 'AmazonWebServicesCredentialsBinding',
+                    credentialsId: 'aws-access-key-id',
+                    accessKeyVariable: 'AWS_ACCESS_KEY_ID',
+                    secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
+                ]]) {
+                    script {
+                        def dbUrl = sh(script: "aws ssm get-parameter --name '/recommendation-service/prod/db_url' --with-decryption --query Parameter.Value --output text", returnStdout: true).trim()
+                        def dbUsername = sh(script: "aws ssm get-parameter --name '/recommendation-service/prod/db_username' --with-decryption --query Parameter.Value --output text", returnStdout: true).trim()
+                        def dbPassword = sh(script: "aws ssm get-parameter --name '/recommendation-service/prod/db_password' --with-decryption --query Parameter.Value --output text", returnStdout: true).trim()
+                        def jwtSecret = sh(script: "aws ssm get-parameter --name '/recommendation-service/prod/jwt_secret' --with-decryption --query Parameter.Value --output text", returnStdout: true).trim()
+                        
+                        sh """
+                            cd recommendation-service
+                            cat application.properties.template | \
+                            sed 's|\${DB_URL}|${dbUrl}|g' | \
+                            sed 's|\${DB_USERNAME}|${dbUsername}|g' | \
+                            sed 's|\${DB_PASSWORD}|${dbPassword}|g' | \
+                            sed 's|\${JWT_SECRET}|${jwtSecret}|g' > src/main/resources/application.properties
+                        """
                     }
+                }
+            }
+        }
+            
+        stage('Build & Test') {
+            agent { label 'docker-node' }
+            steps {
+                sh '''
+                    docker ps | grep test-mysql
+                    cd recommendation-service
+                    mvn clean verify -Pjmeter-tests
+                '''
+            }
+            post {
+                always {
+                    sh 'docker rm -f test-mysql || true'
                 }
             }
         }
