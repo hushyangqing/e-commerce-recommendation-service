@@ -44,15 +44,15 @@ pipeline {
                     '''
 
                     writeFile file: 'recommendation-service/src/main/resources/application-jmeter-test.properties', text: """
-                        spring.datasource.url=jdbc:mysql://localhost:${TEST_DB_PORT}/recommendation_test
-                        spring.datasource.username=root
-                        spring.datasource.password=test
-                        spring.sql.init.mode=always
-                        spring.jpa.hibernate.ddl-auto=update
-                        spring.sql.init.schema-locations=classpath:jmeter-schema.sql
-                        spring.sql.init.data-locations=classpath:jmeter-test-data.sql
-                        jwt.secret=test-secret
-                        jwt.expiration=3600000
+spring.datasource.url=jdbc:mysql://localhost:${TEST_DB_PORT}/recommendation_test
+spring.datasource.username=root
+spring.datasource.password=test
+spring.sql.init.mode=always
+spring.jpa.hibernate.ddl-auto=update
+spring.sql.init.schema-locations=classpath:jmeter-schema.sql
+spring.sql.init.data-locations=classpath:jmeter-test-data.sql
+jwt.secret=test-secret
+jwt.expiration=3600000
                     """
 
                     sh '''
@@ -64,6 +64,11 @@ pipeline {
 
         
         stage('Create Properties File') {
+            docker {
+                image 'amazon/aws-cli'
+                args "--entrypoint=''"
+                reuseNode true
+            }
             steps {
                 script {
                     def dbUrl = sh(script: "aws ssm get-parameter --name '/recommendation-service/prod/db_url' --with-decryption --query Parameter.Value --output text", returnStdout: true).trim()
