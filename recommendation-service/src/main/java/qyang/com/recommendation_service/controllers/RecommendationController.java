@@ -12,7 +12,6 @@ import qyang.com.recommendation_service.services.RecommendationService;
 
 @RestController
 @RequestMapping ("/api/recommendations")
-@Slf4j
 public class RecommendationController {
 	private final RecommendationService recommendationService;
 
@@ -29,7 +28,6 @@ public class RecommendationController {
 			return ResponseEntity.status(HttpStatus.NOT_FOUND)
 					.body(new ErrorResponse(e.getMessage()));
 		} catch (Exception e) {
-			log.error("Error getting recommendations for user {}", userId, e);
 			return ResponseEntity.internalServerError()
 					.body(new ErrorResponse("Error retrieving recommendations"));
 		}
@@ -44,7 +42,6 @@ public class RecommendationController {
 			return ResponseEntity.status(HttpStatus.NOT_FOUND)
 					.body(new ErrorResponse(e.getMessage()));
 		} catch (Exception e) {
-			log.error("Error getting {} recommendations for user {}", category, userId, e);
 			return ResponseEntity.internalServerError()
 					.body(new ErrorResponse("Error retrieving category recommendations"));
 		}

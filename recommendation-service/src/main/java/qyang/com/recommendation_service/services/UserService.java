@@ -25,6 +25,8 @@ import qyang.com.recommendation_service.repositories.UserRepository;
 import qyang.com.recommendation_service.security.JwtUtil;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.UUID;
+
 @Service
 @Transactional
 @Slf4j
@@ -56,19 +58,22 @@ public class UserService {
     }
 
     public UserResponse saveUser(User user) {
-        log.debug("Attempting to register user: {}", user.getUsername());
-        // already exists
-        if (userRepository.existsById(user.getUserId())) {
-            log.warn("Registration failed - username already exists: {}", user.getUsername());
-            throw new UserAlreadyExistsException(
-                    "User with ID " + user.getUserId() + " already exists"
-            );
-        }
         if (userRepository.findByUsername(user.getUsername()).isPresent()) {
-            log.warn("Registration failed - username already exists: {}", user.getUsername());
             throw new UserAlreadyExistsException(
                     "Username " + user.getUsername() + " is already taken"
             );
+        }
+
+        if (user.getUserId() != null) {
+            // If userId is provided, check if it exists
+            if (userRepository.existsById(user.getUserId())) {
+                throw new UserAlreadyExistsException(
+                        "User with ID " + user.getUserId() + " already exists"
+                );
+            }
+        } else {
+            // If no userId, generate one using UUID
+            user.setUserId("USER-" + UUID.randomUUID().toString().substring(0, 8));
         }
 
         user.setPassword(passwordEncoder.encode(user.getPassword()));
@@ -77,7 +82,6 @@ public class UserService {
     }
 
     public LoginResponse login(LoginRequest request) {
-        log.debug("Attempting to authenticate user: {}", request.getUsername());
         try {
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
@@ -92,7 +96,6 @@ public class UserService {
             User user = userRepository.findByUsername(request.getUsername())
                     .orElseThrow(() -> new UsernameNotFoundException("User not found"));
 
-            log.info("Successfully authenticated user: {}", user.getUsername());
 
             return new LoginResponse(
                     jwt,
@@ -100,7 +103,6 @@ public class UserService {
                     user.getUsername()
             );
         } catch (AuthenticationException e) {
-            log.error("Authentication failed for user: {}", request.getUsername(), e);
             throw new InvalidCredentialsException("Invalid username or password");
         }
     }

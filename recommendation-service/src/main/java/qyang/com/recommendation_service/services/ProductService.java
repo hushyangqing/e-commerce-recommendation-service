@@ -12,7 +12,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
-@Slf4j
 public class ProductService {
     private final ProductRepository productRepository;
 

@@ -14,7 +14,6 @@ import qyang.com.recommendation_service.services.UserService;
 
 @RestController
 @RequestMapping("/api/users")
-@Slf4j
 public class UserController {
     private final UserService userService;
 
@@ -34,15 +33,12 @@ public class UserController {
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest) {
-        log.debug("Login attempt for user: {}", loginRequest.getUsername());
         try {
            LoginResponse loginResponse = userService.login(loginRequest);
            return ResponseEntity.ok(loginResponse);
        } catch (InvalidCredentialsException e){
-            log.warn("Login failed for user {}: {}", loginRequest.getUsername(), e.getMessage());
             throw e;
        } catch (Exception e) {
-            log.error("Unexpected error during login for user {}", loginRequest.getUsername(), e);
             throw new RuntimeException("An error occurred during login");
         }
     }

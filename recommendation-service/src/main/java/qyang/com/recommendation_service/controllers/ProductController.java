@@ -16,7 +16,6 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/products")
-@Slf4j
 public class ProductController {
     private final ProductService productService;
 
@@ -36,9 +35,8 @@ public class ProductController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .body(new ErrorResponse(e.getMessage()));
         } catch (Exception e) {
-            log.error("Error retrieving product with ID {}", productId, e);
             return ResponseEntity.internalServerError()
-                    .body(new ErrorResponse("An error occurred while retrieving the product"));
+                    .body(new ErrorResponse("An error occurred while retrieving the product: " + productId));
         }
     }
 
@@ -54,9 +52,8 @@ public class ProductController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .body(new ErrorResponse(e.getMessage()));
         } catch (Exception e) {
-            log.error("Error retrieving products for category {}", categoryName, e);
             return ResponseEntity.internalServerError()
-                    .body(new ErrorResponse("An error occurred while retrieving products"));
+                    .body(new ErrorResponse("An error occurred while retrieving products: "+categoryName));
         }
     }
 

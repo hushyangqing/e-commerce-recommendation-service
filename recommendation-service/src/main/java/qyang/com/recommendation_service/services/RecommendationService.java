@@ -17,7 +17,6 @@ import java.util.List;
 
 @Service
 @Transactional
-@Slf4j
 public class RecommendationService {
 	private final RecommendationRepository recommendationRepository;
 	private final CategoryRecommendationRepository categoryRecommendationRepository;
@@ -43,7 +42,6 @@ public class RecommendationService {
 						});
 						return new RecommendationResponse(rec.getUserId(), productList);
 					} catch (JsonProcessingException e) {
-						log.error("Error parsing product list for user {}", userId, e);
 						throw new RuntimeException("Error parsing product list", e);
 					}
 				})
@@ -61,8 +59,6 @@ public class RecommendationService {
 						List<String> productList = objectMapper.readValue(rec.getProductList(), new TypeReference<List<String>>() {});
 						return new CategoryRecommendationResponse(rec.getId().getUserId(), rec.getId().getCategory(), productList);
 					} catch (JsonProcessingException e) {
-						log.error("Error parsing product list for user {} category {}",
-								userId, category, e);
 						throw new RuntimeException("Error parsing product list", e);
 					}
 				})

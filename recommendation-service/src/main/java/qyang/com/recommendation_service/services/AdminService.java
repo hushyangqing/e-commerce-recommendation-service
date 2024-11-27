@@ -13,7 +13,6 @@ import qyang.com.recommendation_service.repositories.ProductRepository;
 
 @Service
 @Transactional
-@Slf4j
 public class AdminService {
 	private final ProductRepository productRepository;
 

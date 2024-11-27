@@ -14,7 +14,6 @@ import qyang.com.recommendation_service.services.AdminService;
 
 @RestController
 @RequestMapping("/api/admin")
-@Slf4j
 public class AdminController {
 	private final AdminService adminService;
 
@@ -31,7 +30,6 @@ public class AdminController {
 			return ResponseEntity.status(HttpStatus.CONFLICT)
 					.body(new ErrorResponse(e.getMessage()));
 		} catch (Exception e) {
-			log.error("Error creating product", e);
 			return ResponseEntity.internalServerError()
 					.body(new ErrorResponse("Error creating product"));
 		}
@@ -46,7 +44,6 @@ public class AdminController {
 			return ResponseEntity.status(HttpStatus.NOT_FOUND)
 					.body(new ErrorResponse(e.getMessage()));
 		} catch (Exception e) {
-			log.error("Error updating product {}", productId, e);
 			return ResponseEntity.internalServerError()
 					.body(new ErrorResponse("Error updating product"));
 		}
