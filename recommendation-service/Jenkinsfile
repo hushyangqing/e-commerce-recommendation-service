@@ -13,6 +13,13 @@ pipeline {
     
     stages {
         stage('Setup Test Environment') {
+            agent {
+                docker {
+                    image 'docker:dind'
+                    reuseNode true
+                    args "-u root -v /var/run/docker.sock:/var/run/docker.sock --entrypoint=''"
+                }
+            }
             steps {
                 script {
                     def mysql = docker.image('mysql:8.0')
