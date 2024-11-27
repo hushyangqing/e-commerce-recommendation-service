@@ -64,10 +64,12 @@ jwt.expiration=3600000
 
         
         stage('Create Properties File') {
-            docker {
-                image 'amazon/aws-cli'
-                args "--entrypoint=''"
-                reuseNode true
+            agent{
+                docker {
+                    image 'amazon/aws-cli'
+                    args "--entrypoint=''"
+                    reuseNode true
+                }
             }
             steps {
                 script {
