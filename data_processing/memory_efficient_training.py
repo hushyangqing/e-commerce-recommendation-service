@@ -10,6 +10,9 @@ from pathlib import Path
 from dotenv import load_dotenv
 import json
 from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor, as_completed
+import faker
+from datetime import datetime, timedelta
+import random
 
 load_dotenv()
 
@@ -165,7 +168,8 @@ class MemoryEfficientRecommender:
             CREATE TABLE IF NOT EXISTS users (
                 user_id VARCHAR(100) PRIMARY KEY,
                 username VARCHAR(50),
-                password VARCHAR(100) DEFAULT 'password'
+                password VARCHAR(100) DEFAULT '$2a$10$FDDfHJ8YeOvrBa41RZpdHOx7q1OVtsNoLXUIvcECnRXFBS8hTRoIC',
+                role VARCHAR(20) DEFAULT 'ROLE_USER'
             )
         """)
 
@@ -184,9 +188,9 @@ class MemoryEfficientRecommender:
         with open(users_json_path, "r", encoding="utf-8") as users_file:
             all_users = json.load(users_file)
 
-        user_data = [(user['user_id'], user['username']) for user in all_users]
+        user_data = [(user['user_id'], user['username'], '$2a$10$FDDfHJ8YeOvrBa41RZpdHOx7q1OVtsNoLXUIvcECnRXFBS8hTRoIC', 'ROLE_USER') for user in all_users]
         cursor.executemany(
-            "INSERT IGNORE INTO users (user_id, username) VALUES (%s, %s)",
+            "INSERT IGNORE INTO users (user_id, username, password, role) VALUES (%s, %s, %s, %s)",
             user_data
         )
 
@@ -205,6 +209,80 @@ class MemoryEfficientRecommender:
         service_conn.commit()
         service_conn.close()
         print("Users and products saved to MySQL")
+
+    
+    def save_profiles(self):
+        service_conn = mysql.connector.connect(
+            host=os.getenv('DB_HOST'),
+            user=os.getenv('DB_USER'),
+            password=os.getenv('DB_PASSWORD'),
+            port=os.getenv('DB_PORT'),
+            database="service_data"
+        )
+        cursor = service_conn.cursor()
+
+        try:
+            # Create the profiles table
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS profiles (
+                    user_id VARCHAR(100) PRIMARY KEY,
+                    email VARCHAR(255) NOT NULL,
+                    firstname VARCHAR(100),
+                    lastname VARCHAR(100),
+                    phone VARCHAR(20),
+                    created_at TIMESTAMP,
+                    updated_at TIMESTAMP,
+                    FOREIGN KEY (user_id) REFERENCES users(user_id)
+                )
+            """)
+            service_conn.commit()
+
+            # Get existing user_ids from users table
+            cursor.execute("SELECT user_id, username FROM users")
+            existing_users = cursor.fetchall()
+
+            if not existing_users:
+                print("No existing users found. Please run save_users_products first.")
+                return
+
+            # Generate and insert profile data
+            fake = faker.Faker()
+            now = datetime.now()
+            profile_data = []
+            
+            for user_id, username in existing_users:
+                created_at = now - timedelta(days=random.randint(0, 365))
+                updated_at = created_at + timedelta(days=random.randint(0, (now - created_at).days))
+                
+                firstname = fake.first_name()
+                lastname = fake.last_name()
+                email = f"{firstname.lower()}.{lastname.lower()}@{fake.free_email_domain()}"
+                
+                profile_data.append((
+                    user_id,
+                    email,
+                    firstname,
+                    lastname,
+                    fake.phone_number()[:20],
+                    created_at,
+                    updated_at
+                ))
+
+            cursor.executemany("""
+                INSERT IGNORE INTO profiles 
+                (user_id, email, firstname, lastname, phone, created_at, updated_at)
+                VALUES (%s, %s, %s, %s, %s, %s, %s)
+            """, profile_data)
+            service_conn.commit()
+
+            print(f"Successfully created {len(profile_data)} profile records")
+
+        except mysql.connector.Error as err:
+            print(f"Error: {err}")
+            service_conn.rollback()
+        finally:
+            cursor.close()
+            service_conn.close()
 
     def train_model(self, chunk_files, category=None):
         model = SVD(n_factors=100, n_epochs=20, lr_all=0.005, reg_all=0.02, random_state=42)
@@ -417,6 +495,8 @@ if __name__ == "__main__":
             category_recs = recommender.get_recommendations(recommender.test_user_id, category=category, n=10)
             print(f"{category} recommendations:", category_recs)
         
+        print("Saving fake profiles:")
+        recommender.save_profiles()
         print("Saving recommendations:")
         recommender.save_recommendations()
 
