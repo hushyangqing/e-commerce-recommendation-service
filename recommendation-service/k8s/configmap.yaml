@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: recommendation-service-config
+data:
+  DB_URL: ${ssm:/recommendation-service/prod/db_url}
+  DB_USERNAME: ${ssm:/recommendation-service/prod/db_username}
+  DB_PASSWORD: ${ssm:/recommendation-service/prod/db_password}
+  JWT_SECRET: ${ssm:/recommendation-service/prod/jwt_secret}

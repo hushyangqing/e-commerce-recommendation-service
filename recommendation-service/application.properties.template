@@ -1,0 +1,16 @@
+spring.application.name=recommendation-service
+
+## Server Properties
+server.port= 8080
+
+## Spring DATASOURCE (DataSourceAutoConfiguration & DataSourceProperties)
+spring.datasource.driver-class-name = com.mysql.cj.jdbc.Driver
+spring.datasource.url=${ssm:/recommendation-service/prod/db_url}
+spring.datasource.username=${ssm:/recommendation-service/prod/db_username}
+spring.datasource.password=${ssm:/recommendation-service/prod/db_password}
+spring.sql.init.mode=always
+spring.jpa.hibernate.ddl-auto=update
+
+## jwt
+jwt.secret=${ssm:/recommendation-service/prod/jwt_secret}
+jwt.expiration=3600000
