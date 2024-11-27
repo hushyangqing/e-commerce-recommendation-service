@@ -54,7 +54,7 @@ spring.sql.init.schema-locations=classpath:jmeter-schema.sql
 spring.sql.init.data-locations=classpath:jmeter-test-data.sql
 jwt.secret=test-secret
 jwt.expiration=3600000
-                    """
+"""
 
                 }
             }
