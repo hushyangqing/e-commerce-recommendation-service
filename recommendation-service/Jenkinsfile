@@ -15,34 +15,28 @@ pipeline {
         stage('Setup Test Environment') {
             agent {
                 docker {
-                    image 'docker:dind'
-                    args '--group-add $(stat -c %g /var/run/docker.sock) -v /var/run/docker.sock:/var/run/docker.sock --privileged'
+                    image 'mysql:8.0'
                     reuseNode true
+                    args '-e MYSQL_ROOT_PASSWORD=test -e MYSQL_DATABASE=recommendation_test -p ${TEST_DB_PORT}:3306'
                 }
             }
             steps {
                 script {
-                    def mysql = docker.image('mysql:8.0')
-                    mysql.pull()
+                    writeFile file: 'src/main/resources/application-jmeter-test.properties', text: """
+                        spring.datasource.url=jdbc:mysql://localhost:${TEST_DB_PORT}/recommendation_test
+                        spring.datasource.username=root
+                        spring.datasource.password=test
+                        spring.sql.init.mode=always
+                        spring.jpa.hibernate.ddl-auto=update
+                        spring.sql.init.schema-locations=classpath:jmeter-schema.sql
+                        spring.sql.init.data-locations=classpath:jmeter-test-data.sql
+                        jwt.secret=test-secret
+                        jwt.expiration=3600000
+                    """
                     
-                    mysql.withRun("-e MYSQL_ROOT_PASSWORD=test -e MYSQL_DATABASE=recommendation_test -p ${TEST_DB_PORT}:3306") { c ->
-                        sh 'sleep 30'
-                        
-                        writeFile file: 'src/main/resources/application-jmeter-test.properties', text: """
-                            spring.datasource.url=jdbc:mysql://localhost:${TEST_DB_PORT}/recommendation_test
-                            spring.datasource.username=root
-                            spring.datasource.password=test
-                            spring.sql.init.mode=always
-                            spring.jpa.hibernate.ddl-auto=update
-                            spring.sql.init.schema-locations=classpath:jmeter-schema.sql
-                            spring.sql.init.data-locations=classpath:jmeter-test-data.sql
-                            jwt.secret=test-secret
-                            jwt.expiration=3600000
-                        """
-                        
-                        sh '''
-                            sed -i '/<elementProp name="BASE_URL"/,/<\\/elementProp>/ s|<stringProp name="Argument.value">.*</stringProp>|<stringProp name="Argument.value">http://localhost:${TEST_APP_PORT}</stringProp>|' src/test/jmeter/*.jmx
-                        '''
+                    sh '''
+                        sed -i '/<elementProp name="BASE_URL"/,/<\\/elementProp>/ s|<stringProp name="Argument.value">.*</stringProp>|<stringProp name="Argument.value">http://localhost:${TEST_APP_PORT}</stringProp>|' src/test/jmeter/*.jmx
+                    '''
                     }
                 }
             }
