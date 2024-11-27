@@ -12,6 +12,17 @@ pipeline {
     }
     
     stages {
+
+        stage('Test Docker Access') {
+            steps {
+                sh '''
+                    whoami
+                    groups
+                    docker ps
+                '''
+            }
+        }
+        
         stage('Setup Test Environment') {
             steps {
                 script {
