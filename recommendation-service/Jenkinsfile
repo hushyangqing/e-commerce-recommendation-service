@@ -37,7 +37,6 @@ pipeline {
                     sh '''
                         sed -i '/<elementProp name="BASE_URL"/,/<\\/elementProp>/ s|<stringProp name="Argument.value">.*</stringProp>|<stringProp name="Argument.value">http://localhost:${TEST_APP_PORT}</stringProp>|' src/test/jmeter/*.jmx
                     '''
-                    }
                 }
             }
         }
