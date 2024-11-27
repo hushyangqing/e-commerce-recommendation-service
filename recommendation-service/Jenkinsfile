@@ -17,7 +17,7 @@ pipeline {
                 docker {
                     image 'mysql:8.0'
                     reuseNode true
-                    args '-e MYSQL_ROOT_PASSWORD=test -e MYSQL_DATABASE=recommendation_test -p ${TEST_DB_PORT}:3306'
+                    args '--privileged -v /var/run/docker.sock:/var/run/docker.sock -e MYSQL_ROOT_PASSWORD=test -e MYSQL_DATABASE=recommendation_test -p ${TEST_DB_PORT}:3306'
                 }
             }
             steps {
