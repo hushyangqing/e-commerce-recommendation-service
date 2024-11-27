@@ -56,9 +56,6 @@ jwt.secret=test-secret
 jwt.expiration=3600000
                     """
 
-                    sh '''
-                        sed -i '/<elementProp name="BASE_URL"/,/<\\/elementProp>/ s|<stringProp name="Argument.value">.*</stringProp>|<stringProp name="Argument.value">http://localhost:${TEST_APP_PORT}</stringProp>|' recommendation-service/src/test/resources/jmeter/*.jmx
-                    '''
                 }
             }
         }
@@ -85,14 +82,20 @@ jwt.expiration=3600000
                         def dbPassword = sh(script: "aws ssm get-parameter --name '/recommendation-service/prod/db_password' --with-decryption --query Parameter.Value --output text", returnStdout: true).trim()
                         def jwtSecret = sh(script: "aws ssm get-parameter --name '/recommendation-service/prod/jwt_secret' --with-decryption --query Parameter.Value --output text", returnStdout: true).trim()
                         
-                        sh """
-                            cd recommendation-service
-                            cat application.properties.template | \
-                            sed 's|\${DB_URL}|${dbUrl}|g' | \
-                            sed 's|\${DB_USERNAME}|${dbUsername}|g' | \
-                            sed 's|\${DB_PASSWORD}|${dbPassword}|g' | \
-                            sed 's|\${JWT_SECRET}|${jwtSecret}|g' > src/main/resources/application.properties
-                        """
+                writeFile file: 'recommendation-service/src/main/resources/application.properties', text: """
+spring.application.name=recommendation-service
+server.port=8080
+
+spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
+spring.datasource.url=jdbc:mysql://${dbUrl}
+spring.datasource.username=${dbUsername}
+spring.datasource.password=${dbPassword}
+spring.sql.init.mode=always
+spring.jpa.hibernate.ddl-auto=update
+
+jwt.secret=${jwtSecret}
+jwt.expiration=3600000
+"""
                     }
                 }
             }
