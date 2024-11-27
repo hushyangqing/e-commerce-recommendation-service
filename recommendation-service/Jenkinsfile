@@ -16,8 +16,8 @@ pipeline {
             agent {
                 docker {
                     image 'docker:dind'
+                    args '--group-add $(stat -c %g /var/run/docker.sock) -v /var/run/docker.sock:/var/run/docker.sock --privileged'
                     reuseNode true
-                    args "-u root -v /var/run/docker.sock:/var/run/docker.sock --privileged --entrypoint=''"
                 }
             }
             steps {
