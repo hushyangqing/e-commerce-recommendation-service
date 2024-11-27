@@ -13,15 +13,25 @@ pipeline {
     
     stages {
         stage('Setup Test Environment') {
-            agent {
-                docker {
-                    image 'mysql:8.0'
-                    reuseNode true
-                    args '-u root --privileged -v /var/run/docker.sock:/var/run/docker.sock -e MYSQL_ROOT_PASSWORD=test -e MYSQL_DATABASE=recommendation_test -p ${TEST_DB_PORT}:3306'
-                }
-            }
             steps {
                 script {
+                    // Start MySQL container
+                    sh '''
+                        docker run -d --name test-mysql \
+                        -e MYSQL_ROOT_PASSWORD=test \
+                        -e MYSQL_DATABASE=recommendation_test \
+                        -p ${TEST_DB_PORT}:3306 \
+                        mysql:8.0
+                    '''
+
+                    // Wait for MySQL to be ready
+                    sh '''
+                        until docker exec test-mysql mysqladmin ping -h "127.0.0.1" --silent; do
+                            echo "Waiting for database connection..."
+                            sleep 2
+                        done
+                    '''
+
                     writeFile file: 'src/main/resources/application-jmeter-test.properties', text: """
                         spring.datasource.url=jdbc:mysql://localhost:${TEST_DB_PORT}/recommendation_test
                         spring.datasource.username=root
@@ -33,7 +43,7 @@ pipeline {
                         jwt.secret=test-secret
                         jwt.expiration=3600000
                     """
-                    
+
                     sh '''
                         sed -i '/<elementProp name="BASE_URL"/,/<\\/elementProp>/ s|<stringProp name="Argument.value">.*</stringProp>|<stringProp name="Argument.value">http://localhost:${TEST_APP_PORT}</stringProp>|' src/test/jmeter/*.jmx
                     '''
