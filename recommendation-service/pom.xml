@@ -104,8 +104,93 @@
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>start-spring-boot</id>
+						<phase>pre-integration-test</phase>
+						<goals>
+							<goal>start</goal>
+						</goals>
+						<configuration>
+							<profiles>
+								<profile>jmeter-test</profile>
+							</profiles>
+						</configuration>
+					</execution>
+					<execution>
+						<id>stop-spring-boot</id>
+						<phase>post-integration-test</phase>
+						<goals>
+							<goal>stop</goal>
+						</goals>
+					</execution>
+				</executions>
 			</plugin>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-failsafe-plugin</artifactId>
+				<executions>
+					<execution>
+						<goals>
+							<goal>integration-test</goal>
+							<goal>verify</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+
+			<plugin>
+				<groupId>com.lazerycode.jmeter</groupId>
+				<artifactId>jmeter-maven-plugin</artifactId>
+				<version>3.7.0</version>
+				<executions>
+					<execution>
+						<id>jmeter-tests</id>
+						<goals>
+							<goal>jmeter</goal>
+						</goals>
+						<phase>integration-test</phase>
+					</execution>
+				</executions>
+				<configuration>
+					<testFilesDirectory>${project.basedir}/src/test/resources/jmeter</testFilesDirectory>
+					<resultsDirectory>${project.build.directory}/jmeter/results</resultsDirectory>
+					<propertiesJMeter>
+						<spring.profiles.active>jmeter-test</spring.profiles.active>
+					</propertiesJMeter>
+				</configuration>
+			</plugin>
+
 		</plugins>
+
 	</build>
+
+	<profiles>
+		<!-- Unit Test Profile -->
+		<profile>
+			<id>unit-tests</id>
+			<activation>
+				<activeByDefault>true</activeByDefault>
+			</activation>
+			<properties>
+				<spring.profiles.active>test</spring.profiles.active>
+			</properties>
+		</profile>
+
+		<!-- JMeter Test Profile -->
+		<profile>
+			<id>jmeter-tests</id>
+			<activation>
+				<property>
+					<name>jmeter.test</name>
+					<value>true</value>
+				</property>
+			</activation>
+			<properties>
+				<spring.profiles.active>jmeter-test</spring.profiles.active>
+			</properties>
+		</profile>
+	</profiles>
 
 </project>

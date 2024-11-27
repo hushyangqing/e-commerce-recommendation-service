@@ -1,8 +1,9 @@
-DROP TABLE IF EXISTS profiles;
-DROP TABLE IF EXISTS users;
-DROP TABLE IF EXISTS products;
-DROP TABLE IF EXISTS recommendations;
 DROP TABLE IF EXISTS category_recommendations;
+DROP TABLE IF EXISTS recommendations;
+DROP TABLE IF EXISTS profiles;
+
+DROP TABLE IF EXISTS products;
+DROP TABLE IF EXISTS users;
 
 CREATE TABLE users (
     user_id VARCHAR(100) PRIMARY KEY,
@@ -33,14 +34,14 @@ CREATE TABLE products (
 
 CREATE TABLE recommendations (
     user_id VARCHAR(100) PRIMARY KEY,
-    product_list CLOB,
+    product_list JSON,
     FOREIGN KEY (user_id) REFERENCES users(user_id)
 );
 
 CREATE TABLE category_recommendations (
     category VARCHAR(50) NOT NULL,
     user_id VARCHAR(100) NOT NULL,
-    product_list CLOB,
+    product_list JSON,
     PRIMARY KEY (category, user_id),
     FOREIGN KEY (user_id) REFERENCES users(user_id)
 );
