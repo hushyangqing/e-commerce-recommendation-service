@@ -14,6 +14,9 @@ pipeline {
     stages {
 
         stage('Test Docker Access') {
+            agent {
+                label 'docker-node'
+            }
             steps {
                 sh '''
                     whoami
@@ -98,8 +101,12 @@ jwt.expiration=3600000
         }
         
         stage('Build & Test') {
+            agent {
+                label 'docker-node'
+            }
             steps {
                 sh '''
+                    docker ps | grep test-mysql
                     cd recommendation-service
                     mvn clean verify -Pjmeter-tests
                 '''
