@@ -13,6 +13,13 @@ pipeline {
     
     stages {
         stage('Setup Test Environment') {
+            agent {
+                docker {
+                    image 'docker:dind'
+                    args '--privileged'
+                }
+            }
+            
             steps {
                 script {
                     sh """
