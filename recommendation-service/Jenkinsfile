@@ -16,7 +16,7 @@ pipeline {
             steps {
                 script {
                     sh """
-                        sudo docker run -d \
+                        docker run -d \
                             --name test-mysql \
                             -e MYSQL_ROOT_PASSWORD=test \
                             -e MYSQL_DATABASE=recommendation_test \
