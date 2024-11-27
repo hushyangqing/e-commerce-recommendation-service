@@ -33,6 +33,8 @@ Besides, we sample data here since the recommendation model is not our main focu
 
     python3.9 memory_efficient_training.py # to include more recommendations for users, change cursor.execute("SELECT user_id FROM users LIMIT 1000") in def def save_recommendations(self):
 
+Need to mention, the profiles data created is fake since we do not have access to that.
+
 ### Spring Boot API
 After running the api, you can access the Api Documentation:
 
