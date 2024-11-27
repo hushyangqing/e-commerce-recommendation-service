@@ -72,7 +72,12 @@ jwt.expiration=3600000
                 }
             }
             steps {
-                withCredentials([usernamePassword(credentialsId: 'aws-access-key-id', passwordVariable: 'AWS_SECRET_ACCESS_KEY', usernameVariable: 'AWS_ACCESS_KEY_ID')]) {
+                withCredentials([[
+                    $class: 'AmazonWebServicesCredentialsBinding',
+                    credentialsId: 'aws-access-key-id',
+                    accessKeyVariable: 'AWS_ACCESS_KEY_ID',
+                    secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
+                ]]) {
                     script {
                         def dbUrl = sh(script: "aws ssm get-parameter --name '/recommendation-service/prod/db_url' --with-decryption --query Parameter.Value --output text", returnStdout: true).trim()
                         def dbUsername = sh(script: "aws ssm get-parameter --name '/recommendation-service/prod/db_username' --with-decryption --query Parameter.Value --output text", returnStdout: true).trim()
