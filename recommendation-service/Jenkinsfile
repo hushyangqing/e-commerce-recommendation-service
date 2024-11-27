@@ -72,20 +72,22 @@ jwt.expiration=3600000
                 }
             }
             steps {
-                script {
-                    def dbUrl = sh(script: "aws ssm get-parameter --name '/recommendation-service/prod/db_url' --with-decryption --query Parameter.Value --output text", returnStdout: true).trim()
-                    def dbUsername = sh(script: "aws ssm get-parameter --name '/recommendation-service/prod/db_username' --with-decryption --query Parameter.Value --output text", returnStdout: true).trim()
-                    def dbPassword = sh(script: "aws ssm get-parameter --name '/recommendation-service/prod/db_password' --with-decryption --query Parameter.Value --output text", returnStdout: true).trim()
-                    def jwtSecret = sh(script: "aws ssm get-parameter --name '/recommendation-service/prod/jwt_secret' --with-decryption --query Parameter.Value --output text", returnStdout: true).trim()
-                    
-                    sh """
-                        cd recommendation-service
-                        cat application.properties.template | \
-                        sed 's|\${DB_URL}|${dbUrl}|g' | \
-                        sed 's|\${DB_USERNAME}|${dbUsername}|g' | \
-                        sed 's|\${DB_PASSWORD}|${dbPassword}|g' | \
-                        sed 's|\${JWT_SECRET}|${jwtSecret}|g' > src/main/resources/application.properties
-                    """
+                withCredentials([usernamePassword(credentialsId: 'aws-access-key-id', passwordVariable: 'AWS_SECRET_ACCESS_KEY', usernameVariable: 'AWS_ACCESS_KEY_ID')]) {
+                    script {
+                        def dbUrl = sh(script: "aws ssm get-parameter --name '/recommendation-service/prod/db_url' --with-decryption --query Parameter.Value --output text", returnStdout: true).trim()
+                        def dbUsername = sh(script: "aws ssm get-parameter --name '/recommendation-service/prod/db_username' --with-decryption --query Parameter.Value --output text", returnStdout: true).trim()
+                        def dbPassword = sh(script: "aws ssm get-parameter --name '/recommendation-service/prod/db_password' --with-decryption --query Parameter.Value --output text", returnStdout: true).trim()
+                        def jwtSecret = sh(script: "aws ssm get-parameter --name '/recommendation-service/prod/jwt_secret' --with-decryption --query Parameter.Value --output text", returnStdout: true).trim()
+                        
+                        sh """
+                            cd recommendation-service
+                            cat application.properties.template | \
+                            sed 's|\${DB_URL}|${dbUrl}|g' | \
+                            sed 's|\${DB_USERNAME}|${dbUsername}|g' | \
+                            sed 's|\${DB_PASSWORD}|${dbPassword}|g' | \
+                            sed 's|\${JWT_SECRET}|${jwtSecret}|g' > src/main/resources/application.properties
+                        """
+                    }
                 }
             }
         }
