@@ -25,7 +25,6 @@ pipeline {
 
 
         stage('Setup Test Environment') {
-            agent { label 'docker-node' }
             steps {
                 script {
                     // Start MySQL container
@@ -100,8 +99,22 @@ jwt.expiration=3600000
         }
             
         stage('Build & Test') {
-            agent { label 'docker-node' }
             steps {
+                sh '''
+                    docker run -d --name test-mysql \
+                    -e MYSQL_ROOT_PASSWORD=test \
+                    -e MYSQL_DATABASE=recommendation_test \
+                    -p ${TEST_DB_PORT}:3307 \
+                    mysql:8.0
+                '''
+
+                // Wait for MySQL to be ready
+                sh '''
+                    until docker exec test-mysql mysqladmin ping -h "127.0.0.1" --silent; do
+                        echo "Waiting for database connection..."
+                        sleep 2
+                    done
+                '''
                 sh '''
                     docker ps | grep test-mysql
                     cd recommendation-service
