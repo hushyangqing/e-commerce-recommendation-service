@@ -13,46 +13,34 @@ pipeline {
     
     stages {
         stage('Setup Test Environment') {
-            agent {
-                docker {
-                    image 'docker:dind'
-                    args '--privileged'
-                }
-            }
-            
             steps {
                 script {
-                    sh """
-                        docker run -d \
-                            --name test-mysql \
-                            -e MYSQL_ROOT_PASSWORD=test \
-                            -e MYSQL_DATABASE=recommendation_test \
-                            -p \${TEST_DB_PORT}:3306 \
-                            mysql:8.0
-                    """
+                    def mysql = docker.image('mysql:8.0')
+                    mysql.pull()
                     
-                    sh 'sleep 30'
-                    
-                    writeFile file: 'src/main/resources/application-jmeter-test.properties', text: """
-                        spring.datasource.url=jdbc:mysql://localhost:${TEST_DB_PORT}/recommendation_test
-                        spring.datasource.username=root
-                        spring.datasource.password=test
-                        spring.sql.init.mode=always
-                        spring.jpa.hibernate.ddl-auto=update
-
-                        spring.sql.init.schema-locations=classpath:jmeter-schema.sql
-                        spring.sql.init.data-locations=classpath:jmeter-test-data.sql
-                        jwt.secret=test-secret
-                        jwt.expiration=3600000
-                    """
-                    
-                    // Update JMeter test plan BASE_URL
-                    sh '''
-                        sed -i '/<elementProp name="BASE_URL"/,/<\\/elementProp>/ s|<stringProp name="Argument.value">.*</stringProp>|<stringProp name="Argument.value">http://localhost:${TEST_APP_PORT}</stringProp>|' src/test/jmeter/*.jmx
-                    '''
+                    mysql.withRun("-e MYSQL_ROOT_PASSWORD=test -e MYSQL_DATABASE=recommendation_test -p ${TEST_DB_PORT}:3306") { c ->
+                        sh 'sleep 30'
+                        
+                        writeFile file: 'src/main/resources/application-jmeter-test.properties', text: """
+                            spring.datasource.url=jdbc:mysql://localhost:${TEST_DB_PORT}/recommendation_test
+                            spring.datasource.username=root
+                            spring.datasource.password=test
+                            spring.sql.init.mode=always
+                            spring.jpa.hibernate.ddl-auto=update
+                            spring.sql.init.schema-locations=classpath:jmeter-schema.sql
+                            spring.sql.init.data-locations=classpath:jmeter-test-data.sql
+                            jwt.secret=test-secret
+                            jwt.expiration=3600000
+                        """
+                        
+                        sh '''
+                            sed -i '/<elementProp name="BASE_URL"/,/<\\/elementProp>/ s|<stringProp name="Argument.value">.*</stringProp>|<stringProp name="Argument.value">http://localhost:${TEST_APP_PORT}</stringProp>|' src/test/jmeter/*.jmx
+                        '''
+                    }
                 }
             }
         }
+
         
         stage('Create Properties File') {
             steps {
