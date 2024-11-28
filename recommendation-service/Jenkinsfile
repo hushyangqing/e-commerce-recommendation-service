@@ -8,7 +8,7 @@ pipeline {
         IMAGE_TAG = "${BUILD_NUMBER}"
         ECR_REGISTRY = "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com"
         TEST_DB_PORT = '3307'
-        TEST_APP_PORT = '8080'
+        TEST_APP_PORT = '8090'
     }
     
     stages {
@@ -165,12 +165,13 @@ data:
                             cd recommendation-service
                             ls -l
                             aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${ECR_REGISTRY}
+
+                            docker buildx build --platform linux/amd64 \
+                                -t ${ECR_REGISTRY}/${ECR_REPO}:${IMAGE_TAG} \
+                                -f recommendation-service/Dockerfile \
+                                recommendation-service \
+                                --push
                         '''
-                        
-                        def dockerImage = docker.build("${ECR_REGISTRY}/${ECR_REPO}:${IMAGE_TAG}", "recommendation-service")
-                        
-                        dockerImage.push()
-                        dockerImage.push('latest')
                     }
                 }
             }
@@ -226,7 +227,7 @@ data:
                             echo "Checking ConfigMap..."
                             kubectl describe configmap recommendation-service-config
                             echo "Checking pod logs..."
-                            kubectl logs -l app=recommendation-service --tail=50
+                            kubectl logs -l app=recommendation-service --tail=100
                         '''
                 }
             }
