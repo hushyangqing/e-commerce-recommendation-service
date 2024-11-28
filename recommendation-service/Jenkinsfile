@@ -202,10 +202,28 @@ jwt.expiration=3600000
                             aws eks update-kubeconfig --name recommendationServiceK8
                             
                             cd recommendation-service
+
+                            DB_URL=$(aws ssm get-parameter --name '/recommendation-service/prod/db_url' --with-decryption --query Parameter.Value --output text)
+                            DB_USERNAME=$(aws ssm get-parameter --name '/recommendation-service/prod/db_username' --with-decryption --query Parameter.Value --output text)
+                            DB_PASSWORD=$(aws ssm get-parameter --name '/recommendation-service/prod/db_password' --with-decryption --query Parameter.Value --output text)
+                            JWT_SECRET=$(aws ssm get-parameter --name '/recommendation-service/prod/jwt_secret' --with-decryption --query Parameter.Value --output text)
+                            
+                            # Update ConfigMap with actual values
+                            sed -i "s|\${ssm:/recommendation-service/prod/db_url}|$DB_URL|g" k8s/configmap.yaml
+                            sed -i "s|\${ssm:/recommendation-service/prod/db_username}|$DB_USERNAME|g" k8s/configmap.yaml
+                            sed -i "s|\${ssm:/recommendation-service/prod/db_password}|$DB_PASSWORD|g" k8s/configmap.yaml
+                            sed -i "s|\${ssm:/recommendation-service/prod/jwt_secret}|$JWT_SECRET|g" k8s/configmap.yaml
                             
                             kubectl apply -f k8s/configmap.yaml
                             kubectl apply -f k8s/deployment.yaml
                             kubectl apply -f k8s/service.yaml
+
+                            echo "Checking pods status..."
+                            kubectl get pods
+                            echo "Checking ConfigMap..."
+                            kubectl describe configmap recommendation-service-config
+                            echo "Checking pod logs..."
+                            kubectl logs -l app=recommendation-service --tail=50
                         '''
                 }
             }
