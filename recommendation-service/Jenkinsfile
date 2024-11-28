@@ -123,7 +123,7 @@ jwt.expiration=3600000
                     docker ps | grep test-mysql
                     cd recommendation-service
                     docker exec test-mysql mysql -uroot -ptest -e "SHOW DATABASES;"
-                    mvn clean verify -Pjmeter-tests
+                    mvn clean test -Punit-tests
                 '''
             }
             post {
