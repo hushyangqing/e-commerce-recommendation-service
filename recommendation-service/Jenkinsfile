@@ -152,10 +152,11 @@ jwt.expiration=3600000
                         sh '''
                             amazon-linux-extras install docker
                             cd recommendation-service
+                            ls -l
                             aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${ECR_REGISTRY}
                         '''
                         
-                        def dockerImage = docker.build("${ECR_REGISTRY}/${ECR_REPO}:${IMAGE_TAG}")
+                        def dockerImage = docker.build("${ECR_REGISTRY}/${ECR_REPO}:${IMAGE_TAG}", "recommendation-service")
                         
                         dockerImage.push()
                         dockerImage.push('latest')
