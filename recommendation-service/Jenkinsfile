@@ -169,6 +169,7 @@ jwt.expiration=3600000
             steps {
                 script {
                     sh """
+                        cd recommendation-service
                         sed -i 's|\${DOCKER_REGISTRY}|${ECR_REGISTRY}|g' k8s/deployment.yaml
                         sed -i 's|\${IMAGE_NAME}|${ECR_REPO}|g' k8s/deployment.yaml
                         sed -i 's|\${IMAGE_TAG}|${IMAGE_TAG}|g' k8s/deployment.yaml
