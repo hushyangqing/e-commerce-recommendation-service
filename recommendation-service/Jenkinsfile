@@ -34,7 +34,6 @@ pipeline {
                         -e MYSQL_DATABASE=recommendation_test \
                         -p ${TEST_DB_PORT}:3307 \
                         mysql:8.0 \
-                        --port=3307
                     '''
 
                     // Wait for MySQL to be ready
@@ -121,6 +120,7 @@ jwt.expiration=3600000
                 sh '''
                     docker ps | grep test-mysql
                     cd recommendation-service
+                    docker exec test-mysql mysql -uroot -ptest -e "SHOW DATABASES;"
                     mvn clean verify -Pjmeter-tests
                 '''
             }
