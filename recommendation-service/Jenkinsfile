@@ -109,6 +109,9 @@ spring.datasource.password=${dbPassword}
 spring.sql.init.mode=always
 spring.jpa.hibernate.ddl-auto=update
 
+logging.level.org.hibernate=DEBUG
+logging.level.org.springframework.jdbc=DEBUG
+
 jwt.secret=${jwtSecret}
 jwt.expiration=3600000
 """
