@@ -103,7 +103,7 @@ spring.application.name=recommendation-service
 server.port=8090
 
 spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
-spring.datasource.url=${dbUrl}
+spring.datasource.url=${dbUrl}?useSSL=false&serverTimezone=UTC
 spring.datasource.username=${dbUsername}
 spring.datasource.password=${dbPassword}
 spring.sql.init.mode=always
@@ -213,6 +213,7 @@ data:
                             
                             cd recommendation-service
                             
+                            cat src/main/resources/application.properties
                             echo "ConfigMap"
                             cat k8s/configmap.yaml
 
