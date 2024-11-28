@@ -58,4 +58,33 @@ Error Rate: 0% (no errors)
 
 Response Times: Min = 0ms, Max = 1117ms
 
+### Jenkins Docker
+go to the jenkins folder
 
+    docker run -d \            
+    --name jenkins \
+    -p 8080:8080 -p 50000:50000 \
+    -v jenkins_home:/var/jenkins_home \
+    -v /var/run/docker.sock:/var/run/docker.sock \
+    --group-add $(ls -ln /var/run/docker.sock | awk '{print $4}') \
+    custom-jenkins
+
+### AWS configuration
+
+    aws configure  # If not already configured
+
+    aws ecr create-repository --repository-name your-app-name --region your-region
+
+    eksctl create cluster --name your-cluster --region your-region
+
+    aws iam create-role --role-name jenkins-eks-role --assume-role-policy-document '{"Version":"2012-10-17","Statement":[{"Effect":"Allow","Principal":{"Service":"ec2.amazonaws.com"},"Action":"sts:AssumeRole"}]}' --region your-region
+
+    aws iam attach-role-policy --role-name jenkins-eks-role --policy-arn arn:aws:iam::aws:policy/AmazonEKSClusterPolicy --region your-region
+
+    ...
+
+
+## Finally the eks works!!!
+![](images/eks.png)
+
+## Please turn of all the services you open in aws to avoid further cost!!!
