@@ -16,7 +16,7 @@ spec:
       - name: recommendation-service
         image: ${DOCKER_REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}
         ports:
-        - containerPort: 8080
+        - containerPort: 8090
         envFrom:
         - configMapRef:
             name: recommendation-service-config
