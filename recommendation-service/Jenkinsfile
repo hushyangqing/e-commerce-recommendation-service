@@ -181,8 +181,8 @@ jwt.expiration=3600000
         stage('Deploy to EKS') {
             agent {
                 docker {
-                    image 'amazon/aws-cli-docker:latest'
-                    args '--entrypoint="" -v /var/run/docker.sock:/var/run/docker.sock'
+                    image 'amazon/aws-cli'
+                    args "-u root -v /var/run/docker.sock:/var/run/docker.sock --entrypoint=''"
                     reuseNode true
                 }
             }
@@ -194,6 +194,7 @@ jwt.expiration=3600000
                         secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
                     ]]) {
                         sh '''
+                            amazon-linux-extras install docker
                             curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
                             chmod +x kubectl
                             mv kubectl /usr/local/bin/
