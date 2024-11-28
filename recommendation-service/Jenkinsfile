@@ -181,19 +181,31 @@ jwt.expiration=3600000
         stage('Deploy to EKS') {
             agent {
                 docker {
-                    image 'bitnami/kubectl'
-                    args "--entrypoint=''"
+                    image 'amazon/aws-cli-docker:latest'
+                    args '--entrypoint="" -v /var/run/docker.sock:/var/run/docker.sock'
                     reuseNode true
                 }
             }
             steps {
-                withCredentials([file(credentialsId: 'eks-kubeconfig', variable: 'KUBECONFIG')]) {
-                    sh """
-                        cd recommendation-service
-                        kubectl apply -f k8s/configmap.yaml
-                        kubectl apply -f k8s/deployment.yaml
-                        kubectl apply -f k8s/service.yaml
-                    """
+                    withCredentials([[
+                        $class: 'AmazonWebServicesCredentialsBinding',
+                        credentialsId: 'aws-access-key-id',
+                        accessKeyVariable: 'AWS_ACCESS_KEY_ID',
+                        secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
+                    ]]) {
+                        sh '''
+                            curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+                            chmod +x kubectl
+                            mv kubectl /usr/local/bin/
+                            
+                            aws eks update-kubeconfig --name recommendationServiceK8
+                            
+                            cd recommendation-service
+                            
+                            kubectl apply -f k8s/configmap.yaml
+                            kubectl apply -f k8s/deployment.yaml
+                            kubectl apply -f k8s/service.yaml
+                        '''
                 }
             }
         }
