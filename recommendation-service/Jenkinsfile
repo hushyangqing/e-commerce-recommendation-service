@@ -179,9 +179,17 @@ jwt.expiration=3600000
         }
         
         stage('Deploy to EKS') {
+            agent {
+                docker {
+                    image 'bitnami/kubectl'
+                    args "--entrypoint=''"
+                    reuseNode true
+                }
+            }
             steps {
-                withKubeConfig([credentialsId: 'eks-kubeconfig']) {
+                withCredentials([file(credentialsId: 'eks-kubeconfig', variable: 'KUBECONFIG')]) {
                     sh """
+                        cd recommendation-service
                         kubectl apply -f k8s/configmap.yaml
                         kubectl apply -f k8s/deployment.yaml
                         kubectl apply -f k8s/service.yaml
