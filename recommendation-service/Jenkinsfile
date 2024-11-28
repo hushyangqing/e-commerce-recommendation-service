@@ -219,13 +219,6 @@ data:
                             kubectl apply -f k8s/configmap.yaml
                             kubectl apply -f k8s/deployment.yaml
                             kubectl apply -f k8s/service.yaml
-
-                            echo "Checking pods status..."
-                            kubectl get pods
-                            echo "Checking ConfigMap..."
-                            kubectl describe configmap recommendation-service-config
-                            echo "Checking pod logs..."
-                            kubectl logs -l app=recommendation-service --tail=100
                         '''
                 }
             }
