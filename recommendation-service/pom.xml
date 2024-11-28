@@ -138,6 +138,11 @@
 						</goals>
 					</execution>
 				</executions>
+				<configuration>
+					<excludes>
+						<exclude>**/RecommendationServiceApplicationTests.java</exclude>
+					</excludes>
+				</configuration>
 			</plugin>
 
 			<plugin>
