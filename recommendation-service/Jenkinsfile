@@ -33,7 +33,7 @@ pipeline {
                         -e MYSQL_ROOT_PASSWORD=test \
                         -e MYSQL_DATABASE=recommendation_test \
                         -p ${TEST_DB_PORT}:3307 \
-                        mysql:8.0 \
+                        mysql:8.0 
                     '''
 
                     // Wait for MySQL to be ready
@@ -68,6 +68,8 @@ spring.sql.init.schema-locations=classpath:jmeter-schema.sql
 spring.sql.init.data-locations=classpath:jmeter-test-data.sql
 jwt.secret=test-secret
 jwt.expiration=3600000
+logging.level.org.springframework.jdbc=DEBUG
+logging.level.org.hibernate.SQL=DEBUG
 """
 
                 }
